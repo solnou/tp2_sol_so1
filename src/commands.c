@@ -170,6 +170,7 @@ void command_ls(char* arg)
             printf("%s\n", entry->d_name);
         }
     }
+    
 
     // Cierra el directorio
     closedir(dir);

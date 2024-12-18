@@ -42,7 +42,7 @@ void execute_command(char* command)
 void execute_command_secondplane(char* command)
 {
 
-    // Eliminar el '&'
+    // Eliminar el '&' del final del comando
     command[strlen(command) - 1] = '\0'; // \0 simbolo de fin de cadena
 
     pid_t pid = fork();
