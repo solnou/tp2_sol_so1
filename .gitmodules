@@ -1,0 +1,3 @@
+[submodule "lib/tp1_sol_so1"]
+	path = lib/tp1_sol_so1
+	url = https://github.com/solnou/tp1_sol_so1.git
