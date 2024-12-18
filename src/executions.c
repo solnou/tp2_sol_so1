@@ -2,7 +2,7 @@
 
 // Variable global para indicar el id del trabajo
 static int job_id = 1;
-static int size_internal_commands = 7;
+static int size_internal_commands = 8;
 pid_t foreground_pid = 0;
 
 // Declaración de la funciones

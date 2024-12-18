@@ -10,6 +10,7 @@ Command internals_commands[] = {
     {"start_monitor", start_monitor},
     {"stop_monitor", stop_monitor},
     {"status_monitor", status_monitor},
+    {"ls", command_ls}
 };
 
 /*En el caso de que no se llame a ninguno de los comandos listados en el arreglo de internals_commands
@@ -139,4 +140,55 @@ void command_clear()
 void command_quit()
 {
     exit(0);
+}
+
+void command_ls(char* arg)
+{
+    DIR *dir;
+    struct dirent *entry;
+    struct stat file_stat;
+    char *dir_name = arg > 1 ? arg[1] : ".";  // Directorio a listar
+
+
+    dir = opendir(dir_name);
+    if (dir == NULL) {
+        perror("opendir");
+        exit(EXIT_FAILURE);
+    }
+
+    // Lee cada archivo en el directorio
+    while ((entry = readdir(dir)) != NULL) {
+        // Verifica si el archivo tiene una extensión de configuración
+        if (es_archivo_configuracion(entry->d_name)) {
+            // Obtiene el estado del archivo
+            if (stat(entry->d_name, &file_stat) == -1) {
+                perror("stat");
+                continue;
+            }
+
+            // Muestra el nombre del archivo de configuración
+            printf("%s\n", entry->d_name);
+        }
+    }
+
+    // Cierra el directorio
+    closedir(dir);
+    return 0;
+
+}
+
+bool es_archivo_configuracion(const char *filename) {
+    const char *config_extensions[] = {".conf", ".cfg", ".ini"};
+    size_t num_extensions = sizeof(config_extensions) / sizeof(config_extensions[0]);
+
+    for (size_t i = 0; i < num_extensions; i++) {
+        size_t len_ext = strlen(config_extensions[i]);
+        size_t len_filename = strlen(filename);
+
+        if (len_filename >= len_ext && strcmp(filename + len_filename - len_ext, config_extensions[i]) == 0) {
+            return true;
+        }
+    }
+
+    return false;
 }
