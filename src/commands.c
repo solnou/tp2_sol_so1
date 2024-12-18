@@ -2,194 +2,193 @@
 #include "../include/monitor.h"
 
 // Definición del arreglo de comandos internos
-Command internals_commands[] = {
-    {"cd", command_cd},
-    {"echo", command_echo},
-    {"clr", (void (*)(char*))command_clear},
-    {"quit", (void (*)(char*))command_quit},
-    {"start_monitor", start_monitor},
-    {"stop_monitor", stop_monitor},
-    {"status_monitor", status_monitor},
-    {"ls", command_ls}
-};
+Command internals_commands[] = {{"cd", command_cd},
+                                {"echo", command_echo},
+                                {"clr", (void (*)(char *))command_clear},
+                                {"quit", (void (*)(char *))command_quit},
+                                {"start_monitor", start_monitor},
+                                {"stop_monitor", stop_monitor},
+                                {"status_monitor", status_monitor},
+                                {"ls", command_ls}};
 
-/*En el caso de que no se llame a ninguno de los comandos listados en el arreglo de internals_commands
-, se ejecutará la función external_command
+/*En el caso de que no se llame a ninguno de los comandos listados en el arreglo
+de internals_commands , se ejecutará la función external_command
 */
-void external_command(char* command)
-{
+void external_command(char *command) {
 
-    // Crear un proceso hijo
-    pid_t pid = fork();
+  // Crear un proceso hijo
+  pid_t pid = fork();
 
-    switch (pid)
-    {
-    // Hubo un error al crear el proceso hijo
-    case -1:
-        perror("fork");
-        exit(EXIT_FAILURE);
-        break;
-    // Se creo correctamente el proceso hijo
-    case 0: {
-        // Separar el comando y sus argumentos
-        char* args[256];
-        int i = 0;
-        args[i] = strtok(command, " ");
-        while (args[i] != NULL)
-        {
-            i++;
-            args[i] = strtok(NULL, " ");
-        }
-
-        // Ejecutar el programa
-        if (execvp(args[0], args) == -1)
-        {
-            perror("execvp");
-            exit(EXIT_FAILURE);
-        }
-        break;
+  switch (pid) {
+  // Hubo un error al crear el proceso hijo
+  case -1:
+    perror("fork");
+    exit(EXIT_FAILURE);
+    break;
+  // Se creo correctamente el proceso hijo
+  case 0: {
+    // Separar el comando y sus argumentos
+    char *args[256];
+    int i = 0;
+    args[i] = strtok(command, " ");
+    while (args[i] != NULL) {
+      i++;
+      args[i] = strtok(NULL, " ");
     }
 
-    // Proceso padre
-    default:
-        // Esperar a que el proceso hijo termine
-        waitpid(pid, NULL, 0);
-        break;
+    // Ejecutar el programa
+    if (execvp(args[0], args) == -1) {
+      perror("execvp");
+      exit(EXIT_FAILURE);
     }
+    break;
+  }
+
+  // Proceso padre
+  default:
+    // Esperar a que el proceso hijo termine
+    waitpid(pid, NULL, 0);
+    break;
+  }
 }
 
 // COMANDOS INTERNOS
-void command_cd(char* arg)
-{
-    char* directory;
-    char cwd[1024];
-    char* oldpwd = getenv("PWD");
+void command_cd(char *arg) {
+  char *directory;
+  char cwd[1024];
+  char *oldpwd = getenv("PWD");
 
-    if (arg == NULL || strcmp(arg, "") == 0)
-    {
-        directory = getenv("HOME");
-        if (directory == NULL)
-        {
-            fprintf(stderr, "cd: HOME no está definido\n");
-            return;
-        }
+  if (arg == NULL || strcmp(arg, "") == 0) {
+    directory = getenv("HOME");
+    if (directory == NULL) {
+      fprintf(stderr, "cd: HOME no está definido\n");
+      return;
     }
-    else if (strcmp(arg, "-") == 0)
-    {
-        directory = getenv("OLDPWD");
-        if (directory == NULL)
-        {
-            fprintf(stderr, "cd: OLDPWD no está definido\n");
-            return;
-        }
-        printf("%s\n", directory);
+  } else if (strcmp(arg, "-") == 0) {
+    directory = getenv("OLDPWD");
+    if (directory == NULL) {
+      fprintf(stderr, "cd: OLDPWD no está definido\n");
+      return;
     }
-    else
-    {
-        directory = arg;
-    }
+    printf("%s\n", directory);
+  } else {
+    directory = arg;
+  }
 
-    if (chdir(directory) != 0)
-    {
-        perror("cd");
-        return;
-    }
+  if (chdir(directory) != 0) {
+    perror("cd");
+    return;
+  }
 
-    if (getcwd(cwd, sizeof(cwd)) != NULL)
-    {
-        setenv("OLDPWD", oldpwd, 1);
-        setenv("PWD", cwd, 1);
-    }
-    else
-    {
-        perror("getcwd");
-    }
+  if (getcwd(cwd, sizeof(cwd)) != NULL) {
+    setenv("OLDPWD", oldpwd, 1);
+    setenv("PWD", cwd, 1);
+  } else {
+    perror("getcwd");
+  }
 }
 
-void command_echo(char* arg)
-{
-    if (arg == NULL)
-    {
-        printf("\n");
-        return;
-    }
+void command_echo(char *arg) {
+  if (arg == NULL) {
+    printf("\n");
+    return;
+  }
 
-    if (arg[0] == '$')
-    {
-        char* env_var = getenv(arg + 1);
-        if (env_var != NULL)
-        {
-            printf("%s\n", env_var);
-        }
-        else
-        {
-            printf("Variable de entorno no encontrada: %s\n", arg + 1);
-        }
+  if (arg[0] == '$') {
+    char *env_var = getenv(arg + 1);
+    if (env_var != NULL) {
+      printf("%s\n", env_var);
+    } else {
+      printf("Variable de entorno no encontrada: %s\n", arg + 1);
     }
-    else
-    {
-        printf("%s\n", arg);
-    }
+  } else {
+    printf("%s\n", arg);
+  }
 }
 
-void command_clear()
-{
-    printf("\033[H\033[J");
+void command_clear() { printf("\033[H\033[J"); }
+
+void command_quit() { exit(0); }
+
+void command_ls(char *arg) {
+  char *dir_name = arg ? arg : "."; // Directorio a listar
+  listar_directorio(dir_name);
 }
 
-void command_quit()
-{
-    exit(0);
-}
+void listar_directorio(const char *dir_name) {
+  DIR *dir;
+  struct dirent *entry;
+  struct stat file_stat;
 
-void command_ls(char* arg)
-{
-    DIR *dir;
-    struct dirent *entry;
-    struct stat file_stat;
-    char *dir_name = arg > 1 ? arg[1] : ".";  // Directorio a listar
+  dir = opendir(dir_name);
+  if (dir == NULL) {
+    perror("opendir");
+    exit(EXIT_FAILURE);
+  }
 
+  // Lee cada archivo en el directorio
+  while ((entry = readdir(dir)) != NULL) {
+    char path[1024];
+    snprintf(path, sizeof(path), "%s/%s", dir_name, entry->d_name);
 
-    dir = opendir(dir_name);
-    if (dir == NULL) {
-        perror("opendir");
-        exit(EXIT_FAILURE);
+    if (stat(path, &file_stat) == -1) {
+      perror("stat");
+      continue;
     }
 
-    // Lee cada archivo en el directorio
-    while ((entry = readdir(dir)) != NULL) {
-        // Verifica si el archivo tiene una extensión de configuración
-        if (es_archivo_configuracion(entry->d_name)) {
-            // Obtiene el estado del archivo
-            if (stat(entry->d_name, &file_stat) == -1) {
-                perror("stat");
-                continue;
-            }
-
-            // Muestra el nombre del archivo de configuración
-            printf("%s\n", entry->d_name);
-        }
+    if (S_ISDIR(file_stat.st_mode)) {
+      // Ignora los directorios "." y ".."
+      if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+        continue;
+      }
+      // Búsqueda recursiva en subdirectorios
+      listar_directorio(path);
+    } else {
+      // Verifica si el archivo tiene una extensión de configuración
+      if (es_archivo_configuracion(entry->d_name)) {
+        // Muestra el nombre del archivo de configuración
+        printf("%s\n", path);
+        // Lee y muestra el contenido del archivo de configuración
+        leer_archivo_configuracion(path);
+      }
     }
-    
+  }
 
-    // Cierra el directorio
-    closedir(dir);
-    return 0;
-
+  // Cierra el directorio
+  closedir(dir);
 }
 
 bool es_archivo_configuracion(const char *filename) {
-    const char *config_extensions[] = {".conf", ".cfg", ".ini"};
-    size_t num_extensions = sizeof(config_extensions) / sizeof(config_extensions[0]);
+  const char *config_extensions[] = {".conf", ".cfg", ".ini", ".json"};
+  size_t num_extensions =
+      sizeof(config_extensions) / sizeof(config_extensions[0]);
 
-    for (size_t i = 0; i < num_extensions; i++) {
-        size_t len_ext = strlen(config_extensions[i]);
-        size_t len_filename = strlen(filename);
+  for (size_t i = 0; i < num_extensions; i++) {
+    size_t len_ext = strlen(config_extensions[i]);
+    size_t len_filename = strlen(filename);
 
-        if (len_filename >= len_ext && strcmp(filename + len_filename - len_ext, config_extensions[i]) == 0) {
-            return true;
-        }
+    if (len_filename >= len_ext &&
+        strcmp(filename + len_filename - len_ext, config_extensions[i]) == 0) {
+      return true;
     }
+  }
 
-    return false;
+  return false;
+}
+
+void leer_archivo_configuracion(const char *filepath) {
+  FILE *file = fopen(filepath, "r");
+  if (file == NULL) {
+    perror("fopen");
+    return;
+  }
+
+  char line[256];
+  printf("Contenido de %s:\n", filepath);
+  while (fgets(line, sizeof(line), file)) {
+    printf("%s", line);
+  }
+  printf("\n");
+
+  fclose(file);
 }
