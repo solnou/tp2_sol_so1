@@ -9,7 +9,7 @@ Command internals_commands[] = {{"cd", command_cd},
                                 {"start_monitor", start_monitor},
                                 {"stop_monitor", stop_monitor},
                                 {"status_monitor", status_monitor},
-                                {"ls", command_ls}};
+                                {"find_config", command_find}};
 
 /*En el caso de que no se llame a ninguno de los comandos listados en el arreglo
 de internals_commands , se ejecutará la función external_command
@@ -110,8 +110,9 @@ void command_clear() { printf("\033[H\033[J"); }
 
 void command_quit() { exit(0); }
 
-void command_ls(char *arg) {
-  char *dir_name = arg ? arg : "."; // Directorio a listar
+void command_find(char *arg) {
+  char *dir_name = arg ? arg : ".";
+  printf("Explorando el directorio: %s en busca de archivos '.config'\n", dir_name);
   listar_directorio(dir_name);
 }
 
@@ -126,7 +127,6 @@ void listar_directorio(const char *dir_name) {
     exit(EXIT_FAILURE);
   }
 
-  // Lee cada archivo en el directorio
   while ((entry = readdir(dir)) != NULL) {
     char path[1024];
     snprintf(path, sizeof(path), "%s/%s", dir_name, entry->d_name);
@@ -137,31 +137,24 @@ void listar_directorio(const char *dir_name) {
     }
 
     if (S_ISDIR(file_stat.st_mode)) {
-      // Ignora los directorios "." y ".."
       if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
         continue;
       }
-      // Búsqueda recursiva en subdirectorios
       listar_directorio(path);
     } else {
-      // Verifica si el archivo tiene una extensión de configuración
       if (es_archivo_configuracion(entry->d_name)) {
-        // Muestra el nombre del archivo de configuración
-        printf("%s\n", path);
-        // Lee y muestra el contenido del archivo de configuración
+        printf("Archivo de configuración encontrado: %s\n", path);
         leer_archivo_configuracion(path);
       }
     }
   }
 
-  // Cierra el directorio
   closedir(dir);
 }
 
 bool es_archivo_configuracion(const char *filename) {
-  const char *config_extensions[] = {".conf", ".cfg", ".ini", ".json"};
-  size_t num_extensions =
-      sizeof(config_extensions) / sizeof(config_extensions[0]);
+  const char *config_extensions[] = {".conf", ".cfg", ".ini", ".json", ".config"};
+  size_t num_extensions = sizeof(config_extensions) / sizeof(config_extensions[0]);
 
   for (size_t i = 0; i < num_extensions; i++) {
     size_t len_ext = strlen(config_extensions[i]);

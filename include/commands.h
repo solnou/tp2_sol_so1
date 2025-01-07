@@ -65,7 +65,7 @@ extern Command internals_commands[];
  *  Lista los archivos de un directorio
  *  @param arg directorio a listar
  */
-void command_ls(char *arg);
+void command_find(char *arg);
 
 /**
  * @brief Verifica si un archivo tiene una extensión de configuración
