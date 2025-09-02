@@ -16,7 +16,7 @@
  * @param argv Array de argumentos.
  * @return int Código de salida del programa.
  */
-int init_shell(int argc, char* argv[]);
+int init_shell(int argc, char *argv[]);
 
 /**
  * @brief Imprime el prompt para cada nueva línea de comando.
@@ -28,6 +28,6 @@ void prompt(void);
  *
  * @param command El comando a ejecutar.
  */
-void choose_execution(char* command);
+void choose_execution(char *command);
 
 #endif // SHELL_H

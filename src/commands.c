@@ -112,7 +112,8 @@ void command_quit() { exit(0); }
 
 void command_find(char *arg) {
   char *dir_name = arg ? arg : ".";
-  printf("Explorando el directorio: %s en busca de archivos '.config'\n", dir_name);
+  printf("Explorando el directorio: %s en busca de archivos '.config'\n",
+         dir_name);
   listar_directorio(dir_name);
 }
 
@@ -153,8 +154,10 @@ void listar_directorio(const char *dir_name) {
 }
 
 bool es_archivo_configuracion(const char *filename) {
-  const char *config_extensions[] = {".conf", ".cfg", ".ini", ".json", ".config"};
-  size_t num_extensions = sizeof(config_extensions) / sizeof(config_extensions[0]);
+  const char *config_extensions[] = {".conf", ".cfg", ".ini", ".json",
+                                     ".config"};
+  size_t num_extensions =
+      sizeof(config_extensions) / sizeof(config_extensions[0]);
 
   for (size_t i = 0; i < num_extensions; i++) {
     size_t len_ext = strlen(config_extensions[i]);
